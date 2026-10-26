@@ -90,6 +90,8 @@ h2 small{font-family:var(--f-body);font-size:12px;color:var(--muted);font-weight
 .plan .pl .bar{align-self:stretch;border-radius:0 3px 3px 0;background:var(--gold)}
 .plan .pl.done .bar{background:transparent}
 .plan .pl:first-child{border-top:0}
+.ledrow{cursor:pointer;border-radius:6px;padding:2px 0}
+.ledrow:active{background:var(--chip)}
 .ck{width:26px;height:26px;border-radius:50%;border:2px solid var(--muted);background:none;cursor:pointer;padding:0;display:grid;place-items:center}
 .ck svg{width:15px;height:15px;color:var(--gold-ink);opacity:0}
 .ck[aria-checked="true"]{background:var(--gold);border-color:var(--gold)}
@@ -563,8 +565,8 @@ function vLedger(k){
   bal.forEach(p=>{
     h+=`<div class="party"><div class="hd"><b>${esc(p.party)}</b><span class="amt" style="color:${p.due>0?'var(--bad)':'var(--ok)'}">${p.due>0?'дължа '+eur(p.due):'чисто'}</span></div>
     <div class="mini"><div><span>Сметки</span><span class="amt">${eur(p.bills)}</span></div><div><span>Платено</span><span class="amt">${eur(p.pays)}</span></div></div>
-    <details><summary>История (${p.rows.length})</summary><div class="mini" style="margin-top:6px">${p.rows.slice().sort((a,b)=>a.date<b.date?1:-1).map(r=>`<div><span>${bg(r.date)} · ${r.type==='bill'?'сметка':'плащане'+(r.src==='own'?' (лични)':' (каса)')}</span><span class="amt">${r.type==='bill'?'+':'−'}${eur(r.amount)}</span></div>`).join('')}</div></details>
-    <div class="actions"><button class="btn ghost sm" data-act="bill" data-party="${esc(p.party)}">+ Сметка</button><button class="btn sm" data-act="pay" data-party="${esc(p.party)}">Плащане</button></div></div>`});
+    <details><summary>История (${p.rows.length}) — натисни ред, за да го поправиш</summary><div class="mini" style="margin-top:6px">${p.rows.slice().sort((a,b)=>a.date<b.date?1:-1).map(r=>`<div class="ledrow" data-act="ledit" data-id="${r.id}"><span>${bg(r.date)} · ${r.type==='bill'?'сметка':'плащане'+(r.src==='own'?' (лични)':' (каса)')}</span><span class="amt">${r.type==='bill'?'+':'−'}${eur(r.amount)}</span></div>`).join('')}</div></details>
+    <div class="actions"><button class="btn ghost sm" data-act="lren" data-party="${esc(p.party)}">✎ Име</button><button class="btn ghost sm" data-act="bill" data-party="${esc(p.party)}">+ Сметка</button><button class="btn sm" data-act="pay" data-party="${esc(p.party)}">Плащане</button></div></div>`});
   $('#view').innerHTML=h;
 }
 function vKasa(){
@@ -781,6 +783,25 @@ function finePayForm(it){
     v=>{const own=v.src.startsWith('Лични');it.paid={date:v.date,amount:v.amount,src:own?'own':'kasa'};it.done=true;
       if(own)S.adv.push({id:uid(),date:v.date,amount:v.amount,reason:(it.kind==='АУАН'?'Глоба ':'Споразумение ')+DEPTS[it.dept].name+' — '+(it.place||it.title),back:false})});
 }
+function ledgerEdit(l){
+  const own=l.src==='own',f=[{k:'party',l:l.cat==='Сервиз'?'Сервиз':'Доставчик',v:l.party,req:true,list:[...new Set(S.ledger.map(x=>x.party))]},
+    {k:'type',l:'Вид',type:'select',o:['Сметка','Плащане'],v:l.type==='bill'?'Сметка':'Плащане'},
+    {k:'amount',l:'Сума (€)',type:'number',v:l.amount,req:true},{k:'date',l:'Дата',type:'date',v:l.date,req:true},
+    {k:'src',l:'Ако е плащане — платено от',type:'select',o:['Каса','Лични пари (касата ще ми ги върне)'],v:own?'Лични пари (касата ще ми ги върне)':'Каса'},
+    {k:'note',l:'Бележка',v:l.note}];
+  const b=sheet('Поправи запис',f,v=>{
+    const type=v.type==='Сметка'?'bill':'pay',src=type==='pay'?(v.src.startsWith('Лични')?'own':'kasa'):'';
+    Object.assign(l,{party:v.party,type,amount:v.amount,date:v.date,src,note:v.note});
+    const a=S.adv.find(x=>x.link===l.id);
+    if(src==='own'){if(a){if(!a.back)Object.assign(a,{amount:v.amount,date:v.date,reason:v.party})}else S.adv.push({id:uid(),date:v.date,amount:v.amount,reason:v.party,link:l.id,back:false})}
+    else if(a&&!a.back)S.adv=S.adv.filter(x=>x!==a);
+  },'<div class="foot" style="justify-content:flex-start"><button type="button" class="btn ghost sm" id="del" style="color:var(--bad)">Изтрий записа</button></div>');
+  b.querySelector('#del').onclick=()=>{S.ledger=S.ledger.filter(x=>x!==l);S.adv=S.adv.filter(x=>!(x.link===l.id&&!x.back));b.remove();commit('Изтрито')};
+}
+function ledgerRename(old){
+  sheet('Ново име',[{k:'name',l:'Име',v:old,req:true}],v=>{if(!v.name||v.name===old)return;
+    S.ledger.forEach(l=>{if(l.party===old)l.party=v.name});S.adv.forEach(a=>{if(a.reason===old)a.reason=v.name})});
+}
 function ledgerForm(k,type,party){
   const cat=LCAT[k],parties=[...new Set(S.ledger.filter(l=>l.cat===cat).map(l=>l.party))];
   const f=[{k:'party',l:k==='serv'?'Сервиз':'Доставчик',v:party||(k==='ice'?'Ледени близалки':''),req:true,list:parties},
@@ -948,6 +969,8 @@ function doAct(b){
   else if(a==='medit')meetForm(S.meets.find(x=>x.id===id));
   else if(a==='back'){Object.assign(S.adv.find(x=>x.id===id),{back:true,backDate:iso(TODAY)});commit('Върнато от касата')}
   else if(a==='backall'){S.adv.forEach(x=>{if(!x.back){x.back=true;x.backDate=iso(TODAY)}});commit('Всичко е върнато')}
+  else if(a==='ledit')ledgerEdit(S.ledger.find(x=>x.id===id));
+  else if(a==='lren')ledgerRename(b.dataset.party);
   else if(a==='bill'||a==='pay')ledgerForm(route,a,b.dataset.party);
   else if(a==='pck'){const p=S.plan.find(x=>x.id===id);p.done=!p.done;if(p.done)p.doneDate=iso(TODAY);else delete p.doneDate;commit()}
   else if(a==='pedit')planForm(S.plan.find(x=>x.id===id));
