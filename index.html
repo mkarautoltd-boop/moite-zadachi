@@ -962,7 +962,7 @@ function doAct(b){
 }
 $('#view').addEventListener('submit',e=>{
   if(e.target.id!=='planAdd')return;e.preventDefault();
-  const v=$('#planIn').value.trim();if(!v)return;
+  const v=$('#planIn').value.trim();if(!v){const t=iso(TODAY);return planForm(null,planDay&&planDay>t?planDay:t)}
   const t=iso(TODAY);S.plan.push({id:uid(),text:v,date:planDay&&planDay>t?planDay:t});commit();
   const i=$('#planIn');if(i)i.focus();
 });
