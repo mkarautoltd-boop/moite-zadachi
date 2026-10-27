@@ -10,7 +10,8 @@ const PIN = '1234';
 
 const CAL_NAME = 'Моите задачи';
 const APP_URL  = 'https://mkarautoltd-boop.github.io/moite-zadachi/';
-const SEND_BRIEF_HOUR = 7;            // сутрешно резюме в 7:00, пон–пет
+const SEND_BRIEF_HOUR = 7;            // ежедневна проверка на наемите в 7:00
+const SEND_BRIEF = false;             // true = сутрешно резюме по имейл пон–пет
 
 const COLS  = ['items','ledger','adv','meets','plan','rents','wexp','settle','rentPaid','cfg'];
 const SHEET = { items:'Записи', ledger:'Сервизи и доставчици', adv:'Касата ми дължи', meets:'Срещи', plan:'План',
@@ -208,7 +209,7 @@ function line(i, e) {
 function daily() {
   try { const c = cal(), em = evMap(); syncRents(c, em); saveEvMap(em); } catch (e) { console.error(e); }
   const wd = new Date().getDay();
-  if (wd >= 1 && wd <= 5) MailApp.sendEmail(Session.getEffectiveUser().getEmail(), 'Моите задачи — ' + bg(todayIso()), briefText());
+  if (SEND_BRIEF && wd >= 1 && wd <= 5) MailApp.sendEmail(Session.getEffectiveUser().getEmail(), 'Моите задачи — ' + bg(todayIso()), briefText());
 }
 function testBrief() { MailApp.sendEmail(Session.getEffectiveUser().getEmail(), 'Моите задачи — проба', briefText()); }
 

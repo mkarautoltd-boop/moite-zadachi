@@ -918,7 +918,7 @@ function brief(){
 }
 function showBrief(){
   const b=document.createElement('div');b.className='sheet-bg';
-  b.innerHTML=`<div class="sheet"><h3>Сутрешно резюме</h3><pre class="brief" id="bt">${esc(brief())}</pre><p class="note" style="margin-top:8px">Това идва всеки работен ден в 7:00 на имейла ти.</p><div class="foot"><button class="btn ghost" id="cp">Копирай</button><button class="btn" id="bx">Затвори</button></div></div>`;
+  b.innerHTML=`<div class="sheet"><h3>Сутрешно резюме</h3><pre class="brief" id="bt">${esc(brief())}</pre><p class="note" style="margin-top:8px">Резюме на деня — можеш да го копираш и пратиш.</p><div class="foot"><button class="btn ghost" id="cp">Копирай</button><button class="btn" id="bx">Затвори</button></div></div>`;
   document.body.appendChild(b);
   b.addEventListener('click',e=>{if(e.target===b||e.target.id==='bx')b.remove()});
   b.querySelector('#cp').onclick=()=>{const el=b.querySelector('#bt');
