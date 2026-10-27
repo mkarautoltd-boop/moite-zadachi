@@ -196,6 +196,39 @@ pre.brief{white-space:pre-wrap;font-family:var(--f-body);font-size:14px;backgrou
 .login p{color:var(--muted);margin:0;text-align:center;max-width:300px}
 .login input{font:inherit;font-size:24px;letter-spacing:8px;text-align:center;width:200px;padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
 .login .btn{width:200px}
+/* ---------- лаптоп / компютър ---------- */
+.desk{display:none}
+@media (min-width:1000px){
+  body{padding-left:230px;padding-bottom:24px}
+  body::before{left:230px}
+  .hdr{border-radius:0 0 28px 28px}
+  .hdr .in,main.in{max-width:1180px;padding-left:32px;padding-right:32px}
+  .hdr .in{padding-block:22px 24px}
+  h1{font-size:22px}
+  .kpis{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .kpi{padding:12px 16px}.kpi b{font-size:24px}
+  main.in{padding-block:22px 40px}
+  .hgrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:28px;align-items:start}
+  .mob{display:none}.desk{display:block}
+  .sec.first{margin-top:6px}
+  .tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .tile{min-height:72px;padding:14px}
+  nav.bnav{top:0;bottom:0;left:0;right:auto;width:230px;border-top:0;border-right:1px solid var(--line);padding:24px 14px;background:var(--hdr)}
+  nav.bnav .g{display:flex;flex-direction:column;gap:4px;max-width:none}
+  .nb{width:100%;align-self:stretch;flex-direction:row;justify-content:flex-start;gap:12px;font-size:15px;padding:11px 14px;border-radius:12px;color:var(--hdr-muted)}
+  .nb:hover{background:rgba(255,255,255,.06);color:#fff}
+  .nb[aria-current="page"]{box-shadow:none;background:rgba(242,194,48,.12);color:#fff}
+  .nb.add{order:-1;margin-bottom:14px;background:var(--accent);color:var(--accent-ink);justify-content:center;font-weight:700}
+  .nb.add:hover{background:var(--accent);color:var(--accent-ink);filter:brightness(1.08)}
+  .nb.add .plus{width:auto;height:auto;margin:0;background:none;box-shadow:none;font-size:22px;color:inherit}
+  .sheet-bg{align-items:center;padding:24px}
+  .sheet{border-radius:18px;max-width:520px;padding:24px;max-height:86vh}
+  .toast{bottom:28px;left:calc(50% + 115px)}
+  .day{min-height:86px;align-items:flex-start;padding:8px}
+  .rgrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .rtot{grid-template-columns:repeat(3,minmax(0,220px))}
+  .party{padding:16px}
+}
 @media print{
   :root{--bg:#fff;--surface:#fff;--ink:#000;--muted:#444;--line:#bbb;color-scheme:light}
   .hdr,nav.bnav,.chips,.rfil,.actions,.toast,body::before{display:none!important}
@@ -495,9 +528,10 @@ function vPlan(){
 function vHome(){
   const up=upcoming(),now=up.filter(u=>u.d<=1),later=up.filter(u=>u.d>1);
   const shown=showAllNow?now:now.slice(0,3);
-  let h=(false?'<div class="demo"><span><b>ДЕМО</b> — примерни данни, не са твоите</span><button id="clearDemo">Изчисти примерите</button></div>':'')+`<h2 class="first">Днес и утре <small>${now.length?now.length+' неща':''}</small></h2><div class="list">${now.length?shown.map(rowFor).join(''):'<div class="empty">Нищо за днес и утре.</div>'}${now.length>3?`<button class="btn ghost" data-more style="border-radius:0;width:100%">${showAllNow?'Покажи по-малко':'Покажи всички ('+now.length+')'}</button>`:''}</div>`;
-  h+=group('Институции',Object.keys(DEPTS))+group('Пари',['serv','ice','kasa','wash','rent']);
-  h+=`<h2>Предстои <small>следващите дни</small></h2><div class="list">${later.length?later.map(rowFor).join(''):'<div class="empty">Нищо друго в близките дни.</div>'}</div>`;
+  let h=(false?'<div class="demo"><span><b>ДЕМО</b> — примерни данни, не са твоите</span><button id="clearDemo">Изчисти примерите</button></div>':'')+`<div class="hgrid"><div class="hcol"><h2 class="first">Днес и утре <small>${now.length?now.length+' неща':''}</small></h2><div class="list">${now.length?shown.map(rowFor).join(''):'<div class="empty">Нищо за днес и утре.</div>'}${now.length>3?`<button class="btn ghost" data-more style="border-radius:0;width:100%">${showAllNow?'Покажи по-малко':'Покажи всички ('+now.length+')'}</button>`:''}</div>`;
+  const groups=group('Институции',Object.keys(DEPTS))+group('Пари',['serv','ice','kasa','wash','rent']);
+  const pred=`<h2>Предстои <small>следващите дни</small></h2><div class="list">${later.length?later.map(rowFor).join(''):'<div class="empty">Нищо друго в близките дни.</div>'}</div>`;
+  h+=`<div class="mob">${groups}</div>${pred}</div><div class="hcol desk">${groups.replace('class="sec"','class="sec first"')}</div></div>`;
   $('#view').innerHTML=h;
 }
 
